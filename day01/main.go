@@ -98,18 +98,41 @@ func solvePart2(inputPath string) (int, error) {
 
     scanner := bufio.NewScanner(file)
     
-    // Implement Part 2 logic here
-    result := 0
+    similarityScore := 0
+    leftNumbers := []int{}
+    rightNumbers := []int{}
 
+    // 1. Read the input file and store the left and right numbers in separate slices
     for scanner.Scan() {
         line := scanner.Text()
-        // Process each line
-        _ = line
+        
+        var left, right int
+        _, err := fmt.Sscanf(line, "%d %d", &left, &right)
+        if err != nil {
+            return 0, err
+        }
+
+        leftNumbers = append(leftNumbers, left)
+        rightNumbers = append(rightNumbers, right)
+    }
+
+    // 2. Check for each number in the leftNumbers how many times it appears in the rightNumbers
+    for i := 0; i < len(leftNumbers); i++ {
+        totalAppearances := 0
+
+        for j := 0; j < len(rightNumbers); j++ {
+            if (leftNumbers[i] == rightNumbers[j]) {
+                totalAppearances++
+            }
+        }
+
+        // 3. Multiply the number of appearances by the number itself and add it to the similarity score
+        similarityScore += leftNumbers[i] * totalAppearances
     }
 
     if err := scanner.Err(); err != nil {
         return 0, err
     }
 
-    return result, nil
+    return similarityScore, nil
 }
