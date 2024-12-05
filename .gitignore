@@ -22,6 +22,3 @@ go.work
 
 # Environment files
 .env
-
-# Puzzle inputs (optional, depends on your preference)
-**/input.txt
