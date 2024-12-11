@@ -176,15 +176,18 @@ func solvePart2(inputPath string) (int, error) {
             reportLevels[i] = num
         }
 
-        // 3. Validate that the levels (of each report) are either all increasing or all decreasing
-        isLevelsMovementConsistent := validateConsistentLevelMovement(reportLevels)
+        // 3. Validate that any two adjacent levels (of each report) differ by at least one and at most three
+        isAdjacentLevelsAcceptedRange := validateAdjacentLevelDifference(reportLevels, 1, 3)
+        
 
-        if (!isLevelsMovementConsistent) {
+        if (!isAdjacentLevelsAcceptedRange && endingAmountOfLevels == startingAmountOfLevels) {
             for i := 0; i < len(reportLevels); i++ {
-            modifiedReportLevels := append(reportLevels[:i], reportLevels[i+1:]...)
+                modifiedReportLevels := make([]int, len(reportLevels)-1)
+                copy(modifiedReportLevels, reportLevels[:i])
+                copy(modifiedReportLevels[i:], reportLevels[i+1:])
 
-                if (validateConsistentLevelMovement(modifiedReportLevels)) {
-                    isLevelsMovementConsistent = true
+                if (validateAdjacentLevelDifference(modifiedReportLevels, 1, 3) && validateConsistentLevelMovement(modifiedReportLevels)) {
+                    isAdjacentLevelsAcceptedRange = true
                     endingAmountOfLevels = len(modifiedReportLevels)
                     reportLevels = modifiedReportLevels
 
@@ -193,21 +196,25 @@ func solvePart2(inputPath string) (int, error) {
             }
         }
 
-        // If the levels are not consistent, skip the the next validation and skip the report since it's not safe
-        if !isLevelsMovementConsistent {
+        // If the levels are not adjacent enough, skip the the next validation and skip the report since it's not safe
+        if !isAdjacentLevelsAcceptedRange {
             continue
         }
 
-        // 4. Validate that any two adjacent levels (of each report) differ by at least one and at most three
-        isAdjacentLevelsAcceptedRange := validateAdjacentLevelDifference(reportLevels, 1, 3)
-        
+        // 4. Validate that the levels (of each report) are either all increasing or all decreasing
+        isLevelsMovementConsistent := validateConsistentLevelMovement(reportLevels)
 
-        if (!isAdjacentLevelsAcceptedRange && endingAmountOfLevels == startingAmountOfLevels) {
+        if (!isLevelsMovementConsistent && endingAmountOfLevels == startingAmountOfLevels) {
             for i := 0; i < len(reportLevels); i++ {
-            modifiedReportLevels := append(reportLevels[:i], reportLevels[i+1:]...)
+                modifiedReportLevels := make([]int, len(reportLevels)-1)
+                copy(modifiedReportLevels, reportLevels[:i])
+                copy(modifiedReportLevels[i:], reportLevels[i+1:])
+    
+                if (validateConsistentLevelMovement(modifiedReportLevels) && validateAdjacentLevelDifference(modifiedReportLevels, 1, 3)) {
+                    isLevelsMovementConsistent = true
+                    endingAmountOfLevels = len(modifiedReportLevels)
+                    reportLevels = modifiedReportLevels
 
-                if (validateAdjacentLevelDifference(modifiedReportLevels, 1, 3)) {
-                    isAdjacentLevelsAcceptedRange = true
                     break
                 }
             }
