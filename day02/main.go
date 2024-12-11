@@ -139,7 +139,6 @@ func validateAdjacentLevelDifference(reportLevels []int, smallestAllowedDiff int
         }
 
         if (adjacentDiff < smallestAllowedDiff || adjacentDiff > biggestAllowedDiff ) {
-            fmt.Println("Report levels are not consistent")
             return false
         }
     }
@@ -149,23 +148,84 @@ func validateAdjacentLevelDifference(reportLevels []int, smallestAllowedDiff int
 
 func solvePart2(inputPath string) (int, error) {
     file, err := os.Open(inputPath)
-    if err != nil {
-        return 0, err
-    }
     defer file.Close()
 
     scanner := bufio.NewScanner(file)
-    
-    sum := 0
 
-/*     for scanner.Scan() {
-        line := scanner.Text()
+    safeReports := 0
 
-    } */
+    // 1. Read the input file and get all reports (each line)
+    for scanner.Scan() {
+        reportLine := scanner.Text()
+
+        // 2. Divide the reports's level numbers (variable amount) into an array of type [int]
+        reportLevelsRaw := strings.Fields(reportLine)
+        reportLevels := make([]int, len(reportLevelsRaw))
+
+        startingAmountOfLevels := len(reportLevels) // Store the starting amount to compare later if one number is taken out or not
+        endingAmountOfLevels := len(reportLevels) // Store the ending amount to compare later if one number is taken out or not
+
+        // Convert the string array into an int array
+        for i, line := range reportLevelsRaw {
+            num, err := strconv.Atoi(line)
+
+            if err != nil {
+                return 0, fmt.Errorf("invalid level found: %s", line)
+            }
+
+            reportLevels[i] = num
+        }
+
+        // 3. Validate that the levels (of each report) are either all increasing or all decreasing
+        isLevelsMovementConsistent := validateConsistentLevelMovement(reportLevels)
+
+        if (!isLevelsMovementConsistent) {
+            for i := 0; i < len(reportLevels); i++ {
+            modifiedReportLevels := append(reportLevels[:i], reportLevels[i+1:]...)
+
+                if (validateConsistentLevelMovement(modifiedReportLevels)) {
+                    isLevelsMovementConsistent = true
+                    endingAmountOfLevels = len(modifiedReportLevels)
+                    reportLevels = modifiedReportLevels
+
+                    break
+                }
+            }
+        }
+
+        // If the levels are not consistent, skip the the next validation and skip the report since it's not safe
+        if !isLevelsMovementConsistent {
+            continue
+        }
+
+        // 4. Validate that any two adjacent levels (of each report) differ by at least one and at most three
+        isAdjacentLevelsAcceptedRange := validateAdjacentLevelDifference(reportLevels, 1, 3)
+        
+
+        if (!isAdjacentLevelsAcceptedRange && endingAmountOfLevels == startingAmountOfLevels) {
+            for i := 0; i < len(reportLevels); i++ {
+            modifiedReportLevels := append(reportLevels[:i], reportLevels[i+1:]...)
+
+                if (validateAdjacentLevelDifference(modifiedReportLevels, 1, 3)) {
+                    isAdjacentLevelsAcceptedRange = true
+                    break
+                }
+            }
+        }
+
+        // 5. If both validations pass, increment the safeReports counter
+        if (isLevelsMovementConsistent && isAdjacentLevelsAcceptedRange) {
+            safeReports++
+        }
+
+        if err != nil {
+            return 0, err
+        }
+    }
 
     if err := scanner.Err(); err != nil {
         return 0, err
     }
 
-    return sum, nil
+    return safeReports, nil
 }
